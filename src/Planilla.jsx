@@ -1,77 +1,131 @@
-import "./App2.css";
-import { useState, useReducer } from "react";
+import "./App.css";
+import { useReducer, useState} from "react";
 
-const type = {
-  suma: "suma",
-  resta: "resta",
-  eliminar:"eliminar"
-};
+const type = { suma: "suma", resta: "resta"};
 
-const valorInicial = [
-  { id: 1, nombre: "Mayonesa", cantidad: 1 },
-  { id: 2, nombre: "Ketchup", cantidad: 2 },
-  { id: 3, nombre: "Savora", cantidad: 15 },
+const articulos = [
+  {
+    foto: "https://atomoconviene.com/atomo-ecommerce/66302-large_default/gaseosas-secco-tonica-2250-cc--.jpg",
+    nombre: "Secco Tonica",
+    cantidad: 0,
+  },
+  {
+    foto: "https://atomoconviene.com/atomo-ecommerce/65295-home_default/gaseosa-diet-coca-cola-sin-azucar-1500-cc--.jpg",
+    nombre: "Coca Cola Sin Azucar 1500ml",
+    cantidad: 0,
+  },
+  {
+    foto: "https://atomoconviene.com/atomo-ecommerce/65299-home_default/gaseosa-diet-coca-cola-s-azucar-310-cc--.jpg",
+    nombre: "Gaseosa Diet Sin Azucar 330CC",
+    cantidad: 0,
+  },
+  {
+    foto: "https://atomoconviene.com/atomo-ecommerce/67007-home_default/gaseosa-diet-pepsi-black-500-cc--.jpg",
+    nombre: "Pepsi Black 500cc",
+    cantidad: 0,
+  },
+  {
+    foto: "https://atomoconviene.com/atomo-ecommerce/66241-home_default/gaseosas-pepsi---3000-cc--.jpg",
+    nombre: "Pepsi 3000CC",
+    cantidad: 0,
+  },
+  {
+    foto: "https://atomoconviene.com/atomo-ecommerce/66283-home_default/gaseosa-diet-sprite-zero-2250-cc--.jpg",
+    nombre: "Sprite Zero 2250CC",
+    cantidad: 0,
+  },
+  {
+    foto: "https://atomoconviene.com/atomo-ecommerce/66288-home_default/gaseosas-fanta-naranja-2250-cc--.jpg",
+    nombre: "Fanta Naranja 2250CC",
+    cantidad: 0,
+  },
 ];
 
-const reducer = (state, action) => {
+const reductor = (state, action , setCarrito) => {
   switch (action.type) {
     case type.suma:
-        return state.map((art,index)=> //recorrermos el stado actual
-         index === action.payload ? 
-         {...art,cantidad: art.cantidad + 1} 
-         // si index es igual al (id) que pasamos agregamos al art la cantidadactual + 1
-         : art
-        )
-        case type.resta:
-            return state.map((art,index)=>
-             index === action.payload 
-            ? {...art, cantidad: art.cantidad - 1}
-            : art
-            )
-        case type.eliminar:
-            return state.filter((_,index)=>
-             index !== action.payload)
-        case type.agregar:
-          
-        return state;
+      return state.map((art) =>
+        art.nombre === action.nombre && art.cantidad >= 0
+          ? { ...art, cantidad: art.cantidad + 1 }
+          : art
+      );
+    case type.resta:
+      return state.map((art) =>
+        art.nombre === action.nombre && art.cantidad > 0
+          ? { ...art, cantidad: art.cantidad - 1 }
+          : art
+      );
+    default:
+      return state;
   }
-  return state;
 };
 
-export default function Planilla() {
-  const [unidad, dispatch] = useReducer(reducer, valorInicial);
-  const [producto, setProducto] = useState("");
-  
-  const cambio = (e) => {
-    setProducto(e.target.value);
-  };
+const Planilla = () => {
+  const [mercaderia, dispatch] = useReducer(reductor, articulos);
+  const [carrito,setCarrito] = useState([""]);
 
- 
-  return (
-    <div className="container">
-      <div className="menu1">
-        <label htmlFor="pro">Producto:</label>
-        <input id="pro" type="text" value={producto} onChange={cambio} />
+  const agregarnew = (nombre) => {
 
-        <button className="agre" >Agregar</button>
-      </div>
-      <div className="hoja">
+    const articulo = mercaderia.find((art) => art.nombre === nombre)
       
-        {unidad.map((art, id) => (
-          <div key={art.id} className="unidad">
-           
-            <h1>{art.nombre}</h1>
-            <h3>( Cantidad: {art.cantidad} unidades )</h3>
+    if(articulo && articulo.cantidad > 0){
+        setCarrito((prev) => 
+          [...prev,
+        {prev,
+          foto:articulo.foto,
+          nombre:articulo.nombre,
+          cantidad:articulo.cantidad
+        },
+      ])
+    }
+  }
+  return (
+    <div>
+      <div className="menu">
+        {mercaderia.map((mer, i) => (
+          <div className="card" key={i}>
             <div>
-              <button onClick={()=> dispatch({type:type.resta,payload:id})}>-</button>
+              <img src={mer.foto} style={{ width: "140px", height: "120px" }} />
+            </div>
+            <h1>{mer.nombre}</h1>
+            <h2>{mer.cantidad}</h2>
+            <div>
               <button
-                onClick={() => dispatch({ type: type.suma, payload: id })}> + </button>
+                className="verde"
+                onClick={() =>
+                  dispatch({ type: type.suma, nombre: mer.nombre })
+                }
+              >
+                +
+              </button>
               <button
-              onClick={()=>dispatch({type : type.eliminar , payload:id})}>Eliminar</button>
+                className="rojo"
+                onClick={() =>
+                  dispatch({ type: type.resta, nombre: mer.nombre })
+                } >  -
+              </button>
+              <button onClick={()=>agregarnew(mer.nombre)}>agregar</button>
             </div>
           </div>
         ))}
       </div>
+      <div>
+
+         <div>
+          {carrito.map((art,i)=>
+           <div key={i} className="artcarrito">
+             <div>
+              <img src={art.foto} style={{ width: "50px" }} />
+             </div>
+             <h1>{art.nombre}</h1>
+             <h2>{art.cantidad}</h2>
+           </div>
+          )
+          }
+         </div>
+      </div>
     </div>
   );
-}
+};
+
+export default Planilla;
