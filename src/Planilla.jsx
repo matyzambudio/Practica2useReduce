@@ -1,7 +1,7 @@
 import "./App.css";
-import { useReducer, useState} from "react";
+import { useReducer, useState } from "react";
 
-const type = { suma: "suma", resta: "resta"};
+const type = { suma: "suma", resta: "resta" };
 
 const articulos = [
   {
@@ -41,7 +41,7 @@ const articulos = [
   },
 ];
 
-const reductor = (state, action , setCarrito) => {
+const reductor = (state, action) => {
   switch (action.type) {
     case type.suma:
       return state.map((art) =>
@@ -62,23 +62,44 @@ const reductor = (state, action , setCarrito) => {
 
 const Planilla = () => {
   const [mercaderia, dispatch] = useReducer(reductor, articulos);
-  const [carrito,setCarrito] = useState([""]);
+  const [carrito, setCarrito] = useState([""]);
 
   const agregarnew = (nombre) => {
+    const articulo = mercaderia.find((art) => art.nombre === nombre);
 
-    const articulo = mercaderia.find((art) => art.nombre === nombre)
+    if (articulo && articulo.cantidad > 0) {
       
-    if(articulo && articulo.cantidad > 0){
-        setCarrito((prev) => 
-          [...prev,
-        {prev,
-          foto:articulo.foto,
-          nombre:articulo.nombre,
-          cantidad:articulo.cantidad
-        },
-      ])
+      const articuloencarrito = carrito.find(
+        (art) => art.nombre === articulo.nombre
+      );
+
+      if (articuloencarrito) {
+        setCarrito((prev) => {
+        return  prev.map((prod) =>
+                prod.nombre === articulo.nombre
+                       ? { ...prod, cantidad: prod.cantidad + articulo.cantidad }
+                       : prod
+          );
+        });
+      } else {
+        setCarrito((prev) => [
+          ...prev,
+          {
+            prev,
+            foto: articulo.foto,
+            nombre: articulo.nombre,
+            cantidad: articulo.cantidad,
+          },
+        ]);
+      }
     }
-  }
+  };
+
+  const quitarlo = (nombre) => {
+    setCarrito((prev) =>
+      prev.filter((art) => art.nombre !== nombre)
+    );
+  };
   return (
     <div>
       <div className="menu">
@@ -90,39 +111,29 @@ const Planilla = () => {
             <h1>{mer.nombre}</h1>
             <h2>{mer.cantidad}</h2>
             <div>
-              <button
-                className="verde"
-                onClick={() =>
-                  dispatch({ type: type.suma, nombre: mer.nombre })
-                }
-              >
-                +
-              </button>
-              <button
-                className="rojo"
-                onClick={() =>
-                  dispatch({ type: type.resta, nombre: mer.nombre })
-                } >  -
-              </button>
-              <button onClick={()=>agregarnew(mer.nombre)}>agregar</button>
+              <button className="verde"onClick={() =>dispatch({ type: type.suma, nombre: mer.nombre })}>
+                     + </button>
+              <button className="rojo" onClick={()=>dispatch({ type: type.resta, nombre: mer.nombre })
+                }> - </button>
+              <button onClick={() => agregarnew(mer.nombre)}>Agregar</button>
+             
             </div>
           </div>
         ))}
       </div>
       <div>
-
-         <div>
-          {carrito.map((art,i)=>
-           <div key={i} className="artcarrito">
-             <div>
-              <img src={art.foto} style={{ width: "50px" }} />
-             </div>
-             <h1>{art.nombre}</h1>
-             <h2>{art.cantidad}</h2>
-           </div>
-          )
-          }
-         </div>
+        <div>
+          {carrito.map((art, i) => (
+            <div key={i} className="artcarrito">
+              <div>
+                <img src={art.foto} style={{ width: "50px" }} />
+              </div>
+              <h1>{art.nombre}</h1>
+              <h2>{art.cantidad}</h2>
+              <button onClick={()=> quitarlo(art.nombre)}>Quitar</button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
